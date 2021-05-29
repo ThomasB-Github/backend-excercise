@@ -2,11 +2,13 @@ package db
 
 import (
 	"database/sql"
-	"github.com/golang/protobuf/ptypes"
-	_ "github.com/mattn/go-sqlite3"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/golang/protobuf/ptypes"
+	_ "github.com/mattn/go-sqlite3"
 
 	"git.neds.sh/matty/entain/racing/proto/racing"
 )
@@ -77,6 +79,12 @@ func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFil
 		for _, meetingID := range filter.MeetingIds {
 			args = append(args, meetingID)
 		}
+	}
+
+	// Thomas Bulleid: Using 1 and 0 as I was unable to figure out how to check if a boolean was actually passed in.
+	// Visible is stored in the database as 1 or 0 so that is an added benefit.
+	if filter.Visible == 1 || filter.Visible == 0 {
+		clauses = append(clauses, "visible IN ("+strconv.FormatInt(filter.Visible, 10)+")")
 	}
 
 	if len(clauses) != 0 {
