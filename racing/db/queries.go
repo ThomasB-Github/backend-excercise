@@ -13,7 +13,8 @@ func getRaceQueries() map[string]string {
 				name, 
 				number, 
 				visible, 
-				advertised_start_time 
+				advertised_start_time,
+				status
 			FROM races
 		`,
 	}

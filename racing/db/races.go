@@ -95,7 +95,7 @@ func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFil
 		query += " WHERE " + strings.Join(clauses, " AND ")
 	}
 
-	// Sorting results by advertised_start_time
+	// Sort results by advertised_start_time
 	query += " ORDER BY advertised_start_time ASC"
 
 	return query, args
@@ -110,7 +110,7 @@ func (m *racesRepo) scanRaces(
 		var race racing.Race
 		var advertisedStart time.Time
 
-		if err := rows.Scan(&race.Id, &race.MeetingId, &race.Name, &race.Number, &race.Visible, &advertisedStart); err != nil {
+		if err := rows.Scan(&race.Id, &race.MeetingId, &race.Name, &race.Number, &race.Visible, &advertisedStart, &race.Status); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, nil
 			}

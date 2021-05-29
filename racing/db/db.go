@@ -7,13 +7,24 @@ import (
 )
 
 func (r *racesRepo) seed() error {
-	statement, err := r.db.Prepare(`CREATE TABLE IF NOT EXISTS races (id INTEGER PRIMARY KEY, meeting_id INTEGER, name TEXT, number INTEGER, visible INTEGER, advertised_start_time DATETIME)`)
+	generatedTime := time.Now()
+	raceStatus := "CLOSED"
+	// create new table if one does not exist which includes new column "status"
+	statement, err := r.db.Prepare(`CREATE TABLE IF NOT EXISTS races (id INTEGER PRIMARY KEY, meeting_id INTEGER, name TEXT, number INTEGER, visible INTEGER, advertised_start_time DATETIME, status TEXT)`)
 	if err == nil {
 		_, err = statement.Exec()
 	}
 
 	for i := 1; i <= 100; i++ {
-		statement, err = r.db.Prepare(`INSERT OR IGNORE INTO races(id, meeting_id, name, number, visible, advertised_start_time) VALUES (?,?,?,?,?,?)`)
+		statement, err = r.db.Prepare(`INSERT OR IGNORE INTO races(id, meeting_id, name, number, visible, advertised_start_time, status) VALUES (?,?,?,?,?,?,?)`)
+		// Generate a fake time and determine whether the status should be CLOSED or OPEN
+		generatedTime = faker.Time().Between(time.Now().AddDate(0, 0, -1), time.Now().AddDate(0, 0, 2))
+		if generatedTime.Before(time.Now()) {
+			raceStatus = "CLOSED"
+		} else {
+			raceStatus = "OPEN"
+		}
+		// Finally insert these generated values into a new row in the db
 		if err == nil {
 			_, err = statement.Exec(
 				i,
@@ -21,7 +32,8 @@ func (r *racesRepo) seed() error {
 				faker.Team().Name(),
 				faker.Number().Between(1, 12),
 				faker.Number().Between(0, 1),
-				faker.Time().Between(time.Now().AddDate(0, 0, -1), time.Now().AddDate(0, 0, 2)).Format(time.RFC3339),
+				generatedTime.Format(time.RFC3339),
+				raceStatus,
 			)
 		}
 	}

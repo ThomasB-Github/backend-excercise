@@ -25,8 +25,7 @@ message ListRacesResponse {
 message ListRacesRequestFilter {
   repeated int64 meeting_ids = 1;
 
-  // This is an additional filter to check if the race is visible or not. 
-  // Todo:: change this to accept true/false
+  // This adds a filter on races to check if the race is visible or not.
   // I used an int64 here instead of a boolean as I had issues with checking whether visible was 
   // actually passed in or not, otherwise it was defaulting to false.
   repeated int64 visible = 2;
@@ -48,5 +47,7 @@ message Race {
   bool visible = 5;
   // AdvertisedStartTime is the time the race is advertised to run.
   google.protobuf.Timestamp advertised_start_time = 6;
+  // Status is an indicator of whether the race is still open.
+  string status = 7;
 }
 
