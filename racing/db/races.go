@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -81,10 +80,15 @@ func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFil
 		}
 	}
 
-	// Thomas Bulleid: Using 1 and 0 as I was unable to figure out how to check if a boolean was actually passed in.
-	// Visible is stored in the database as 1 or 0 so that is an added benefit.
-	if filter.Visible == 1 || filter.Visible == 0 {
-		clauses = append(clauses, "visible IN ("+strconv.FormatInt(filter.Visible, 10)+")")
+	// Thomas Bulleid: This creates the part of the query that will filter on visibility.
+	// Using 1 and 0 as I was unable to figure out how to check if a boolean was actually passed in,
+	// as it was defaulting to false.
+	if len(filter.Visible) > 0 {
+		clauses = append(clauses, "visible IN ("+strings.Repeat("?,", len(filter.Visible)-1)+"?)")
+
+		for _, visible := range filter.Visible {
+			args = append(args, visible)
+		}
 	}
 
 	if len(clauses) != 0 {
