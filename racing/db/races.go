@@ -140,14 +140,14 @@ func (r *racesRepo) applyGetRaceFilter(query string, filter *racing.GetRaceReque
 		for _, id := range filter.Id {
 			args = append(args, id)
 		}
+	} else {
+		// Return no results if an id is not passed in
+		clauses = append(clauses, "id IN (\"\")")
 	}
 
 	if len(clauses) != 0 {
 		query += " WHERE " + strings.Join(clauses, " AND ")
 	}
-
-	// Sort results by advertised_start_time
-	query += " ORDER BY advertised_start_time ASC"
 
 	return query, args
 }
