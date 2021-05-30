@@ -19,6 +19,9 @@ type RacesRepo interface {
 
 	// List will return a list of races.
 	List(filter *racing.ListRacesRequestFilter) ([]*racing.Race, error)
+
+	// GetRace will return a race based off the input id.
+	GetRace(filter *racing.GetRaceRequestFilter) ([]*racing.Race, error)
 }
 
 type racesRepo struct {
@@ -97,6 +100,54 @@ func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFil
 
 	// Sort results by advertised_start_time
 	query += " ORDER BY advertised_start_time ASC"
+
+	return query, args
+}
+
+func (r *racesRepo) GetRace(filter *racing.GetRaceRequestFilter) ([]*racing.Race, error) {
+	var (
+		err   error
+		query string
+		args  []interface{}
+	)
+
+	// Utilise existing query
+	query = getRaceQueries()[racesList]
+
+	query, args = r.applyGetRaceFilter(query, filter)
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.scanRaces(rows)
+}
+
+func (r *racesRepo) applyGetRaceFilter(query string, filter *racing.GetRaceRequestFilter) (string, []interface{}) {
+	var (
+		clauses []string
+		args    []interface{}
+	)
+
+	if filter == nil {
+		return query, args
+	}
+
+	if len(filter.Id) > 0 {
+		clauses = append(clauses, "id IN ("+strings.Repeat("?,", len(filter.Id)-1)+"?)")
+
+		for _, id := range filter.Id {
+			args = append(args, id)
+		}
+	} else {
+		// Return no results if an id is not passed in
+		clauses = append(clauses, "id IN (\"\")")
+	}
+
+	if len(clauses) != 0 {
+		query += " WHERE " + strings.Join(clauses, " AND ")
+	}
 
 	return query, args
 }
